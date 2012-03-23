@@ -1,0 +1,193 @@
+#!/bin/bash
+
+# PLEASE read the README file!
+# That's what it's for.
+
+
+# Constants...
+# Location of local project root.
+LOCAL_ROOT="$HOME/Sites/MYSITE"
+# Location of drupal site folder (assumed same on prod/dev).
+DRUPAL_FOLDER='drupal'
+# Address of remote git repo.
+GIT_REPO='git@github.com:doublejosh/Drupal-Environment-Refresh.git'
+# Optionally just refresh the main branch.
+# GIT_REPO='--branch master git@github.com:doublejosh/Drupal-Environment-Refresh.git'
+# Hard coded user, leave 0 for entry on command run.
+REMOTE_USERNAME='MYUSERNAME'
+# Address of production/backup.
+REMOTE_HOST='MYDOMAIN.com'
+# Location of production/backup folder.
+REMOTE_FOLDER='/home/MYUSER/SITEFOLDER'
+# Name of backup (manual) file.
+REMOTE_BACKUP='MySiteBackup.mysql.gz'
+# Backup & Migrate profile hash (small snapshot recommended).
+BACKUP_HASH='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+# Location of drush on prod.
+REMOTE_DRUSH='/home/drush/drush.php'
+# ...end constants.
+# Might want to think twice before editing beyond this point.
+# Exception: there are dev only settings you'll want to set for your needs.
+
+
+
+# Parse flags.
+while getopts :cdfaPEL option
+do
+  case "$option" in
+    c)
+      FRESHEN_CODE=1
+      ;;
+    d)
+      FRESHEN_DB=1
+      ;;
+    f)
+      FRESHEN_FILES=1
+      ;;
+    a)
+      FRESHEN_ALL=1
+      ;;
+    P)
+      GIT_OPT='pull'
+      ;;
+    E)
+      DEV_ENV_SETTINGS=1
+      ;;
+    L)
+      USE_LOCAL_DB=1
+      ;;
+  esac
+done
+
+
+# If no flags, then set the all flag.
+if [[ -z $FRESHEN_CODE  &&  -z $FRESHEN_DB  &&  -z $FRESHEN_FILES ]]; then
+  # cloning from assembla sucks, let's make sure we want to
+  while [[ "$freshen_all_flag" != "y" && "$freshen_all_flag" != "n" ]]; do
+    read -p "Are you sure you want to do that? (y/n): " freshen_all_flag
+  done
+  
+  if [ "$freshen_all_flag" == "y" ]; then
+    FRESHEN_ALL=1
+  else
+    echo "Exiting..."
+    exit
+  fi
+fi
+
+
+if [ REMOTE_USERNAME == 0 ]; then
+  # Read in necessary username and password.
+  read -p "Enter Username: " remote_user
+else
+  remote_user=$REMOTE_USERNAME
+fi
+
+
+# If we're freshening code or everything.
+if [[ $FRESHEN_ALL || $FRESHEN_CODE ]]; then
+
+  echo ''
+  echo 'Handling Code * * * * * * * * * * * * * *'
+  echo ''
+
+  # If we're pulling, then just pull from remote repo.
+  if [ $GIT_OPT == 'pull' ]; then
+      
+    # Add and pull from remote repo.
+    cd $LOCAL_ROOT/$DRUPAL_FOLDER
+    echo "Attempting to pull from repo..."
+    git pull $GIT_REPO
+
+  # WIPE the WHOLE thing and clone.
+  else
+  
+    # Delete local site.
+    echo "Attempting to delete $LOCAL_ROOT"
+    rm -fR $LOCAL_ROOT
+
+    # Clone from remote repo.
+    echo "Attempting to clone repo..."
+    git clone $GIT_REPO
+
+    # Enter local folder.
+    cd $LOCAL_ROOT/$DRUPAL_FOLDER
+
+    echo "Restoring settings.php file..."
+    cp sites/default/settings.php.txt sites/default/settings.php
+    
+    echo "Restoring htaccess file..."
+    cp htaccess.standard.txt .htaccess
+
+    echo "Restoring drushrc.php file..."
+    cp drushrc.php.txt drushrc.php
+            
+    # Because folder is wiped, we'll need to rsync the files.
+    FRESHEN_FILES=1
+  fi
+  
+fi
+
+
+# Freshening database.
+if [[ $FRESHEN_ALL || $FRESHEN_DB ]]; then
+
+  echo ''
+  echo 'Handling Database * * * * * * * * * * * * *'
+  echo ''
+
+  if [[ -z $USE_LOCAL_DB ]]; then
+  
+    # Running remote backup.
+    echo "Attempting a manual backup snapshot on production..."
+    ssh $remote_user@$REMOTE_HOST "/usr/local/php5/bin/php $REMOTE_DRUSH -r $REMOTE_FOLDER/$DRUPAL_FOLDER bam-backup db manual $BACKUP_HASH"
+    
+    # Refresh the database.
+    echo "Attempting to refresh the database file..."
+    scp -v $remote_user@$REMOTE_HOST:$REMOTE_FOLDER/backups/manual/$REMOTE_BACKUP $LOCAL_ROOT/backups/manual/bk_db.mysql.gz
+    gunzip -f $LOCAL_ROOT/backups/manual/bk_db.mysql.gz
+  
+  fi
+        
+  echo "Attempting to overwrite the database..."
+  cd $LOCAL_ROOT/$DRUPAL_FOLDER
+  `drush sql-connect` < $LOCAL_ROOT/backups/manual/bk_db.mysql
+      
+  # Update to dev settings.
+  if [ $DEV_ENV_SETTINGS ]; then
+      
+    echo ''
+    echo 'Dev Environment * * * * * * * * * * * * * *'
+    echo ''
+    #              
+    # PLACE DEV ONLY SETTINGS HERE...
+    #
+    
+    drush en -y update
+    drush en -y devel
+    drush en -y permissions_api
+    # New grant all: http://drupal.org/node/1244290
+    drush perm-grant 'anonymous user' 'access devel information'
+    drush perm-grant 'authenticated user' 'access devel information'
+    drush vset --yes googlemap_api_key 'XXXXXXXXXX'
+    
+    #
+    # ...END DEV ONLY SETTINGS
+    #          
+  fi
+  
+fi
+
+
+# Freshening files.
+if [[ $FRESHEN_ALL || $FRESHEN_FILES ]]; then
+  # rsync files from production backup
+  echo "Attempting to pull files from production..."
+  rsync -avz --include "*/" --include="*.swf" --include="*.jpg" --include="*.swf" --include="*.png" --include="*.gif" --exclude "*" $remote_user@$REMOTE_HOST:$REMOTE_FOLDER/$DRUPAL_FOLDER/sites/all/files/ $LOCAL_ROOT/$DRUPAL_FOLDER/sites/all/files/
+fi
+
+
+# Clear the cache.
+cd $LOCAL_ROOT/$DRUPAL_FOLDER
+echo "Attempting to clear all caches..."
+drush cc all

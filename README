@@ -1,0 +1,80 @@
+
+INSTALLATION...
+
+1. Place the freshen script at: usr/local/bin
+
+2. Change things for your setup. Read on.
+
+
+THINGS TO CHANGE...
+
+1. Constants:
+   This set of variables will adapt the script to your setup.
+   It includes folder names, URLs, etc.
+
+2. Dev Environment Settings:
+   No doubt you'll want a few changes to your setup which can't be accomplished
+   via variables in your settings.local.php file. Edit drush commands here.
+
+
+ASSUMPTIONS...
+
+1. You have a master project folder with a site folder within it.
+
+2. Remote DB backup is gzipped.
+
+3. Remote backups go into a "backups/manual" folder.
+
+3. You git ignore your "sites/default/files" directory.
+
+4. For complete wipes and brand new setups, you need to git ignore and maintain
+   side-by-side dev environment config file backups of the following files.
+   The normal path will be restored by the script, it's assumed you have these
+   files in your drupal path.
+   
+   A. htaccess.txt
+   
+   B. drushrc.php.txt
+   
+   C. If you ignore sites/all/default/settings.php on production you'll need a
+      backup at sites/all/default/settings.php.txt
+
+
+NOTES...
+
+1. To accomplish different environments settings:
+
+   A. Add a require_once() from settings.php to a settings.local.php which is
+   git ignored and environment specific, RECOMMENDED.
+   
+   B. Use multisites and a git ignored folder for local settings. If you use
+      this setup then you'll need to also maintain a side-by-side backup for
+      sites/all/default/settings.php.txt because you'll be ignoring it.
+     
+2. You can choose to set the username variable to 0 and force the prompt
+   everytime for added security.
+
+
+USAGE...
+
+Run the script via terminal, here are some examples:
+
+  "freshen -dEL"
+  Refresh your database back to the local copy, and put dev environment settings
+  in place. Useful after you have been experimenting locally and want to roll
+  back, but don't need brand new data.
+  
+  "freshen -dfP"
+  Refresh both your database and uploaded files to the current live production
+  status, as well as get the most recent working master. Useful for
+  investigating problems.
+  
+  "freshen -c"
+  Refresh your working code. CAREFUL this will wipe any local changes you have
+  made and not PUSHED up to your remote git repo. Useful if you've messed up
+  your repo somehow and just want to start over code-wise.
+  
+  "freshen"
+  This will wipe everything and completely create a fresh setup that will match
+  the production setup. Since this is a big deal, you'll get a confirmation.
+  
