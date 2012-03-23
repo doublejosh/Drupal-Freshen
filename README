@@ -1,5 +1,9 @@
 
-INSTALLATION...
+Drupal Freshen
+Easily refresh development or staging environments.
+
+
+INSTALL...
 
 1. Place the freshen script at: usr/local/bin
 
@@ -21,7 +25,7 @@ ASSUMPTIONS...
 
 1. You have a master project folder with a site folder within it.
 
-2. Remote DB backup is gzipped.
+2. Remote DB backup are created with Backup & Migrate and un-gzip-able.
 
 3. Remote backups go into a "backups/manual" folder.
 
