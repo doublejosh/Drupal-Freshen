@@ -27,7 +27,7 @@ ASSUMPTIONS...
 
 2. Remote DB backups are un-gzip-able.
 
-3. You don't mind local backups go into a "backups" folder within you project.
+3. You don't mind local backups going into a "backups" folder within you project.
 
 3. You Git ignore your "sites/default/files" directory.
 
@@ -46,8 +46,8 @@ ASSUMPTIONS...
 
 NOTES...
 
-1. TODO: Add a live files refresh as well as DB. Thought you could use
-   http://drupal.org/project/stage_file_proxy to grab them as required.
+1. You can point your files backup path to either a staging/dev files directory
+   or at an off-production backup folder.
 
 2. To accomplish different environments settings:
 
@@ -67,7 +67,7 @@ USAGE...
 Run the script via terminal, here are some examples:
 
   "freshen -fdE"
-  Refresh your files and database from a schedule backup and apply deve work
+  Refresh your files and database from a schedule backup and apply dev working
   settings. Perfect for daily use.
   
   "freshen -dEL"
@@ -76,11 +76,11 @@ Run the script via terminal, here are some examples:
   back but don't need brand new data.
   
   "freshen -dM"
-  Refresh your database to the current live state. This should not be used on
-  a production setup, only while working on a site with a team. In a bind this
-  could be used to quickly replicate the site to investigate a critical problem.
-  NOTE: Uploaded files will not be up to date without another tool like:
-  http://drupal.org/project/stage_file_proxy
+  Refresh your database to the current live state. This should NOT be used
+  pointing to a production setup, only while working on a site with a team. In
+  a bind this could be used to quickly replicate the site to investigate a
+  critical problem. NOTE: Uploaded files will not be up to date without another
+  tool like: http://drupal.org/project/stage_file_proxy
   
   "freshen -c"
   Refresh your working code. CAREFUL this will wipe any local changes you have

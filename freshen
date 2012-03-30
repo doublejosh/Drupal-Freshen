@@ -33,8 +33,10 @@ BACKUP_HASH='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 # Name of backup (manual) file.
 REMOTE_LIVE_BACKUP='MySiteBackup.mysql.gz'
 # Location of live backup.
-REMOTE_LIVE_BACKUP_FOLDER = "$REMOTE_FOLDER/backups/manual"
+REMOTE_LIVE_BACKUP_FOLDER="$REMOTE_FOLDER/backups/manual"
 
+# Location of files directory backup.
+REMOTE_FILES_BACKUP_FOLDER="$DRUPAL_FOLDER/sites/all/files"
 # Remote backup naming convention for scheduled backups.
 # Using this type of backup is certainly recommended and the default, however
 # while building or from group dev you may want to pull down shared work.
@@ -43,7 +45,7 @@ date=`date -v-1d "+%Y-%m-%d"`
 dow=`date -v-1d "+%A"`
 REMOTE_SCHEDULED_BACKUP="name_of_backup_file_${date}_23h00m.${dow}.sql.gz"
 # Location of scheduled backup.
-REMOTE_SCHEDULED_BACKUP_FOLDER = "$REMOTE_FOLDER/backups/scheduled"
+REMOTE_SCHEDULED_BACKUP_FOLDER="$REMOTE_FOLDER/backups/scheduled"
 
 # ...end constants.
 # Might want to think twice before editing beyond this point.
@@ -219,7 +221,7 @@ fi
 if [[ $FRESHEN_ALL || $FRESHEN_FILES ]]; then
   # rsync files from production backup
   echo "Attempting to pull files from production..."
-  rsync -avz --include "*/" --include="*.swf" --include="*.jpg" --include="*.swf" --include="*.png" --include="*.gif" --exclude "*" $remote_user@$REMOTE_HOST:$REMOTE_FOLDER/$DRUPAL_FOLDER/sites/all/files/ $LOCAL_ROOT/$DRUPAL_FOLDER/sites/all/files/
+  rsync -avz --include "*/" --include="*.swf" --include="*.jpg" --include="*.swf" --include="*.png" --include="*.gif" --exclude "*" $remote_user@$REMOTE_HOST:$REMOTE_FOLDER/$REMOTE_FILES_BACKUP_FOLDER $LOCAL_ROOT/$DRUPAL_FOLDER/sites/all/files/
 fi
 
 
