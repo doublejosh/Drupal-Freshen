@@ -25,11 +25,11 @@ ASSUMPTIONS...
 
 1. You have a master project folder with a site folder within it.
 
-2. Remote DB backup are created with Backup & Migrate and un-gzip-able.
+2. Remote DB backups are un-gzip-able.
 
-3. Remote backups go into a "backups/manual" folder.
+3. You don't mind local backups go into a "backups" folder within you project.
 
-3. You git ignore your "sites/default/files" directory.
+3. You Git ignore your "sites/default/files" directory.
 
 4. For complete wipes and brand new setups, you need to git ignore and maintain
    side-by-side dev environment config file backups of the following files.
@@ -41,12 +41,15 @@ ASSUMPTIONS...
    B. drushrc.php.txt
    
    C. If you ignore sites/all/default/settings.php on production you'll need a
-      backup at sites/all/default/settings.php.txt
+      backup at sites/all/default/settings.php.txt (see notes for a better way).
 
 
 NOTES...
 
-1. To accomplish different environments settings:
+1. TODO: Add a live files refresh as well as DB. Thought you could use
+   http://drupal.org/project/stage_file_proxy to grab them as required.
+
+2. To accomplish different environments settings:
 
    A. Add a require_once() from settings.php to a settings.local.php which is
    git ignored and environment specific, RECOMMENDED.
@@ -63,15 +66,21 @@ USAGE...
 
 Run the script via terminal, here are some examples:
 
+  "freshen -fdE"
+  Refresh your files and database from a schedule backup and apply deve work
+  settings. Perfect for daily use.
+  
   "freshen -dEL"
   Refresh your database back to the local copy, and put dev environment settings
   in place. Useful after you have been experimenting locally and want to roll
-  back, but don't need brand new data.
+  back but don't need brand new data.
   
-  "freshen -dfP"
-  Refresh both your database and uploaded files to the current live production
-  status, as well as get the most recent working master. Useful for
-  investigating problems.
+  "freshen -dM"
+  Refresh your database to the current live state. This should not be used on
+  a production setup, only while working on a site with a team. In a bind this
+  could be used to quickly replicate the site to investigate a critical problem.
+  NOTE: Uploaded files will not be up to date without another tool like:
+  http://drupal.org/project/stage_file_proxy
   
   "freshen -c"
   Refresh your working code. CAREFUL this will wipe any local changes you have
