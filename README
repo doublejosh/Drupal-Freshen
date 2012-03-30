@@ -5,9 +5,11 @@ Easily freshen up your Drupal dev or staging environments.
 
 INSTALL...
 
-1. Place the freshen script at: usr/local/bin
+1. Place the freshen script at: usr/local/bin/freshen
 
 2. Change things for your setup. Read on.
+
+3. Create a backups/scheduled and/or backups/manual folder in your project root.
 
 
 THINGS TO CHANGE...
@@ -29,9 +31,9 @@ ASSUMPTIONS...
 
 3. You don't mind local backups going into a "backups" folder within you project.
 
-3. You Git ignore your "sites/default/files" directory.
+3. You used and Git ignore a "sites/default/files" directory for uploads.
 
-4. For complete wipes and brand new setups, you need to git ignore and maintain
+5. For complete wipes and brand new setups, you need to git ignore and maintain
    side-by-side dev environment config file backups of the following files.
    The normal path will be restored by the script, it's assumed you have these
    files in your drupal path.

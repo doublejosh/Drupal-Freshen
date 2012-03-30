@@ -36,7 +36,7 @@ REMOTE_LIVE_BACKUP='MySiteBackup.mysql.gz'
 REMOTE_LIVE_BACKUP_FOLDER="$REMOTE_FOLDER/backups/manual"
 
 # Location of files directory backup.
-REMOTE_FILES_BACKUP_FOLDER="$REMOTE_FOLDER/$DRUPAL_FOLDER/sites/all/files"
+REMOTE_FILES_BACKUP_FOLDER="$REMOTE_FOLDER/$DRUPAL_FOLDER/sites/default/files"
 # Remote backup naming convention for scheduled backups.
 # Using this type of backup is certainly recommended and the default, however
 # while building or from group dev you may want to pull down shared work.
@@ -224,7 +224,7 @@ if [[ $FRESHEN_ALL || $FRESHEN_FILES ]]; then
   # In case you'd like to reduce what gets pulled.
   # Also see this solution: http://drupal.org/project/stage_file_proxy
   # rsync -avz --include "*/" --include="*.swf" --include="*.jpg" --include="*.png" --include="*.gif" --exclude "*" $remote_user@$REMOTE_HOST:$REMOTE_FILES_BACKUP_FOLDER $LOCAL_ROOT/$DRUPAL_FOLDER/sites/all/files/
-  rsync -avz $remote_user@$REMOTE_HOST:$REMOTE_FILES_BACKUP_FOLDER $LOCAL_ROOT/$DRUPAL_FOLDER/sites/all/files/
+  rsync -avz $remote_user@$REMOTE_HOST:$REMOTE_FILES_BACKUP_FOLDER $LOCAL_ROOT/$DRUPAL_FOLDER/sites/default/files/
 fi
 
 
