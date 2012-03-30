@@ -221,7 +221,10 @@ fi
 if [[ $FRESHEN_ALL || $FRESHEN_FILES ]]; then
   # rsync files from production backup
   echo "Attempting to pull files from production..."
-  rsync -avz --include "*/" --include="*.swf" --include="*.jpg" --include="*.swf" --include="*.png" --include="*.gif" --exclude "*" $remote_user@$REMOTE_HOST:$REMOTE_FILES_BACKUP_FOLDER $LOCAL_ROOT/$DRUPAL_FOLDER/sites/all/files/
+  # In case you'd like to reduce what gets pulled.
+  # Also see this solution: http://drupal.org/project/stage_file_proxy
+  # rsync -avz --include "*/" --include="*.swf" --include="*.jpg" --include="*.png" --include="*.gif" --exclude "*" $remote_user@$REMOTE_HOST:$REMOTE_FILES_BACKUP_FOLDER $LOCAL_ROOT/$DRUPAL_FOLDER/sites/all/files/
+  rsync -avz $remote_user@$REMOTE_HOST:$REMOTE_FILES_BACKUP_FOLDER $LOCAL_ROOT/$DRUPAL_FOLDER/sites/all/files/
 fi
 
 
