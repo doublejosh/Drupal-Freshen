@@ -54,7 +54,7 @@ REMOTE_SCHEDULED_BACKUP_FOLDER="$REMOTE_FOLDER/backups/scheduled"
 
 
 # Parse flags.
-while getopts :cdfaPEL option
+while getopts :cdfaPEML option
 do
   case "$option" in
     c)
