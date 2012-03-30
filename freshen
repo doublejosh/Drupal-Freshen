@@ -5,29 +5,49 @@
 
 
 # Constants...
+
 # Location of local project root.
 LOCAL_ROOT="$HOME/Sites/MYSITE"
 # Location of drupal site folder (assumed same on prod/dev).
 DRUPAL_FOLDER='drupal'
+
 # Address of remote git repo.
 GIT_REPO='git@github.com:doublejosh/Drupal-Environment-Refresh.git'
+
 # Optionally just refresh the main branch.
 # GIT_REPO='--branch master git@github.com:doublejosh/Drupal-Environment-Refresh.git'
 # Hard coded user, leave 0 for entry on command run.
 REMOTE_USERNAME='MYUSERNAME'
 # Address of production/backup.
 REMOTE_HOST='MYDOMAIN.com'
-# Location of production/backup folder.
+# Location of production folder.
 REMOTE_FOLDER='/home/MYUSER/SITEFOLDER'
-# Name of backup (manual) file.
-REMOTE_BACKUP='MySiteBackup.mysql.gz'
-# Backup & Migrate profile hash (small snapshot recommended).
-BACKUP_HASH='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+
 # Location of drush on prod.
 REMOTE_DRUSH='/home/drush/drush.php'
+# Location of drush on prod.
+REMOTE_PHP='/usr/local/php5/bin/php'
+
+# Backup & Migrate profile hash (small snapshot recommended).
+BACKUP_HASH='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+# Name of backup (manual) file.
+REMOTE_LIVE_BACKUP='MySiteBackup.mysql.gz'
+# Location of live backup.
+REMOTE_LIVE_BACKUP_FOLDER = "$REMOTE_FOLDER/backups/manual"
+
+# Remote backup naming convention for scheduled backups.
+# Using this type of backup is certainly recommended and the default, however
+# while building or from group dev you may want to pull down shared work.
+# See http://ss64.com/bash/date.html or search for: "bash date"
+date=`date -v-1d "+%Y-%m-%d"`
+dow=`date -v-1d "+%A"`
+REMOTE_SCHEDULED_BACKUP="name_of_backup_file_${date}_23h00m.${dow}.sql.gz"
+# Location of scheduled backup.
+REMOTE_SCHEDULED_BACKUP_FOLDER = "$REMOTE_FOLDER/backups/scheduled"
+
 # ...end constants.
 # Might want to think twice before editing beyond this point.
-# Exception: there are dev only settings you'll want to set for your needs.
+# Exception: there are dev only settings BELOW you'll want to set for your needs.
 
 
 
@@ -52,6 +72,9 @@ do
       ;;
     E)
       DEV_ENV_SETTINGS=1
+      ;;
+    M)
+      MAKE_LIVE_BACKUP=1
       ;;
     L)
       USE_LOCAL_DB=1
@@ -138,14 +161,27 @@ if [[ $FRESHEN_ALL || $FRESHEN_DB ]]; then
 
   if [[ -z $USE_LOCAL_DB ]]; then
   
-    # Running remote backup.
-    echo "Attempting a manual backup snapshot on production..."
-    ssh $remote_user@$REMOTE_HOST "/usr/local/php5/bin/php $REMOTE_DRUSH -r $REMOTE_FOLDER/$DRUPAL_FOLDER bam-backup db manual $BACKUP_HASH"
+    # Create a live remote backup.
+    if [[ $MAKE_LIVE_BACKUP ]]; then
     
-    # Refresh the database.
-    echo "Attempting to refresh the database file..."
-    scp -v $remote_user@$REMOTE_HOST:$REMOTE_FOLDER/backups/manual/$REMOTE_BACKUP $LOCAL_ROOT/backups/manual/bk_db.mysql.gz
-    gunzip -f $LOCAL_ROOT/backups/manual/bk_db.mysql.gz
+      # Running remote backup.
+      echo "Attempting a manual remote backup snapshot..."
+      ssh $remote_user@$REMOTE_HOST "$REMOTE_PHP $REMOTE_DRUSH -r $REMOTE_FOLDER/$DRUPAL_FOLDER bam-backup db manual $BACKUP_HASH"
+      
+      # Refresh the database.
+      echo "Attempting to pull the (live) database backup..."
+      scp -v $remote_user@$REMOTE_HOST:$REMOTE_LIVE_BACKUP_FOLDER/$REMOTE_LIVE_BACKUP $LOCAL_ROOT/backups/manual/bk_db.mysql.gz
+      gunzip -f $LOCAL_ROOT/backups/manual/bk_db.mysql.gz
+      
+    # Use an existing remote backup.
+    else
+
+      # Refresh the database.
+      echo "Attempting to pull the (scheduled) database backup..."
+      scp -v $remote_user@$REMOTE_HOST:$REMOTE_SCHEDULED_BACKUP_FOLDER/$REMOTE_SCHEDULED_BACKUP $LOCAL_ROOT/backups/scheduled/bk_db.mysql.gz
+      gunzip -f $LOCAL_ROOT/backups/scheduled/bk_db.mysql.gz
+    
+    fi
   
   fi
         
